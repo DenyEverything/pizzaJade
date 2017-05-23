@@ -42,6 +42,7 @@ public class PizzaSellerAgent extends Agent {
 	private ArrayList<MyPizza> menu;
 	// The GUI by means of which the user can add books in the catalogue
 	private PizzaSellerGui myGui;
+	private int indexOfFoundObject = -1000;
 
 	//custom class for personal data type
 	public class MyPizza {
@@ -133,8 +134,13 @@ public class PizzaSellerAgent extends Agent {
 				// CFP Message received. Process it
 				String title = msg.getContent();
 				ACLMessage reply = msg.createReply();
-
-				Integer price = (Integer) catalogue.get(title);
+				Integer price = null;
+				for (MyPizza object: menu){
+					if(Objects.equals(object.name, title)){
+						price = object.price;
+						indexOfFoundObject = menu.indexOf(object);
+					}
+				}
 				if (price != null) {
 					// The requested book is available for sale. Reply with the price
 					reply.setPerformative(ACLMessage.PROPOSE);
@@ -170,7 +176,9 @@ public class PizzaSellerAgent extends Agent {
 				String title = msg.getContent();
 				ACLMessage reply = msg.createReply();
 
-				Integer price = (Integer) catalogue.remove(title);
+				Integer price = menu.get(indexOfFoundObject).price;
+				menu.remove(indexOfFoundObject);
+
 				if (price != null) {
 					reply.setPerformative(ACLMessage.INFORM);
 					System.out.println(title+" sold to agent "+msg.getSender().getName());
