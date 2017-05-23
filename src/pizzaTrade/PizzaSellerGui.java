@@ -27,6 +27,8 @@ import jade.core.AID;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import javax.swing.*;
 
 /**
@@ -62,7 +64,9 @@ class PizzaSellerGui extends JFrame {
 					String title = titleField.getText().trim();
 					String price = priceField.getText().trim();
 					String[] ingredientsArray = ingredientsField.getText().split(",");
-					myAgent.updateCatalogue(title, Integer.parseInt(price));
+                    ArrayList<String> ingredientsList = new ArrayList<String>(Arrays.asList(ingredientsArray));
+					myAgent.updateCatalogue(title, Integer.parseInt(price), ingredientsList);
+
 					titleField.setText("");
 					priceField.setText("");
 					ingredientsField.setText("");

@@ -33,9 +33,14 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
+import java.util.ArrayList;
+
 public class PizzaBuyerAgent extends Agent {
 	// The title of the book to buy
-	private String targetBookTitle;
+	private String targetBookTitle;  								//do usuniecia
+	private String targetPizzaName;
+	private ArrayList<String> targetIngredients;
+	private PizzaBuyerGui myGui;
 	// The list of known seller agents
 	private AID[] sellerAgents;
 
@@ -44,20 +49,25 @@ public class PizzaBuyerAgent extends Agent {
 		// Printout a welcome message
 		System.out.println("Hallo! Buyer-agent "+getAID().getName()+" is ready.");
 
+		// NEW CODE HERE
+		myGui = new PizzaBuyerGui(this);
+		myGui.showGui();
+
 		// Get the title of the book to buy as a start-up argument
-		Object[] args = getArguments();
-		if (args != null && args.length > 0) {
-			targetBookTitle = (String) args[0];
-			System.out.println("Target book is "+targetBookTitle);
+		//Object[] args = getArguments();
+		//if (args != null && args.length > 0) {
+		//	targetBookTitle = (String) args[0];						//do usuniecia
+		//	System.out.println("Target book is "+targetBookTitle);  //do usuniecia
 
 			// Add a TickerBehaviour that schedules a request to seller agents every minute
 			addBehaviour(new TickerBehaviour(this, 60000) {
 				protected void onTick() {
-					System.out.println("Trying to buy "+targetBookTitle);
+					//System.out.println("Trying to buy "+targetBookTitle);
+					System.out.println("Trying to buy "+targetPizzaName);
 					// Update the list of seller agents
 					DFAgentDescription template = new DFAgentDescription();
 					ServiceDescription sd = new ServiceDescription();
-					sd.setType("book-selling");
+					sd.setType("pizza-ordering");
 					template.addServices(sd);
 					try {
 						DFAgentDescription[] result = DFService.search(myAgent, template); 
@@ -76,12 +86,12 @@ public class PizzaBuyerAgent extends Agent {
 					myAgent.addBehaviour(new RequestPerformer());
 				}
 			} );
-		}
-		else {
+		//}
+		//else {
 			// Make the agent terminate
-			System.out.println("No target book title specified");
-			doDelete();
-		}
+		//	System.out.println("No target pizza title specified");
+		//	doDelete();
+		//}
 	}
 
 	// Put agent clean-up operations here
@@ -90,6 +100,19 @@ public class PizzaBuyerAgent extends Agent {
 		System.out.println("Buyer-agent "+getAID().getName()+" terminating.");
 	}
 
+	public void updateTarget(final String title, final ArrayList ingredients) {
+		addBehaviour(new OneShotBehaviour() {
+			public void action() {
+				if(title != null) {
+					targetPizzaName = title;
+					System.out.println("Looking for pizza " + title);
+				} else {
+					targetIngredients = ingredients;
+					System.out.println( "Looking for ingredients " + ingredients.toString());
+				}
+			}
+		});
+	}
 	/**
 	   Inner class RequestPerformer.
 	   This is the behaviour used by Book-buyer agents to request seller 
@@ -182,7 +205,8 @@ public class PizzaBuyerAgent extends Agent {
 
 		public boolean done() {
 			if (step == 2 && bestSeller == null) {
-				System.out.println("Attempt failed: "+targetBookTitle+" not available for sale");
+				//System.out.println("Attempt failed: "+targetBookTitle+" not available for sale");
+				System.out.println("Attempt failed: "+targetPizzaName+" not available for sale");
 			}
 			return ((step == 2 && bestSeller == null) || step == 4);
 		}
