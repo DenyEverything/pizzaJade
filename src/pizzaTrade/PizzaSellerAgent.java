@@ -59,9 +59,8 @@ public class PizzaSellerAgent extends Agent {
 	// Put agent initializations here
 	protected void setup() {
 		// Create the catalogue
-		catalogue = new Hashtable();
-
-		menu = new ArrayList<MyPizza>();
+		catalogue = new Hashtable();   //should be removed later
+		menu = new ArrayList<>();
 
 		// Create and show the GUI 
 		myGui = new PizzaSellerGui(this);
