@@ -38,7 +38,6 @@ import static java.awt.SystemColor.menu;
 
 public class PizzaSellerAgent extends Agent {
 	// The catalogue of books for sale (maps the title of a book to its price)
-	private Hashtable catalogue;
 	private ArrayList<MyPizza> menu;
 	// The GUI by means of which the user can add books in the catalogue
 	private PizzaSellerGui myGui;
@@ -60,7 +59,6 @@ public class PizzaSellerAgent extends Agent {
 	// Put agent initializations here
 	protected void setup() {
 		// Create the catalogue
-		catalogue = new Hashtable();   //should be removed later
 		menu = new ArrayList<>();
 
 		// Create and show the GUI 
@@ -132,15 +130,42 @@ public class PizzaSellerAgent extends Agent {
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) {
 				// CFP Message received. Process it
-				String title = msg.getContent();
-				ACLMessage reply = msg.createReply();
+				String   _ingredients;
+				String   _title;
+				String[] message = msg.getContent().split(";");
+				int match = 0;
+
 				Integer price = null;
-				for (MyPizza object: menu){
-					if(Objects.equals(object.name, title)){
-						price = object.price;
-						indexOfFoundObject = menu.indexOf(object);
+
+				if(message[0].equalsIgnoreCase("0")){
+					_title = msg.getContent().substring(2);
+					for (MyPizza object: menu){
+						if(Objects.equals(object.name, _title)){
+							price = object.price;
+							indexOfFoundObject = menu.indexOf(object);
+						}
 					}
 				}
+				else if (message[0].equalsIgnoreCase("1")) {
+					_ingredients = msg.getContent().substring(2);
+					List<String> ingredientList = new ArrayList<String>(Arrays.asList(_ingredients.split("[^a-zA-Z']+")));
+					for (MyPizza pizza: menu){
+						for (String ing: pizza.ingredients){
+						for (String currentIng: ingredientList){
+							if(Objects.equals(ing, currentIng)){
+								match++;
+							}
+						}}
+						if (match == ingredientList.size()-1){
+							price = pizza.price;
+							indexOfFoundObject = menu.indexOf(pizza);
+						}
+						match=0;
+					}
+				}
+
+				ACLMessage reply = msg.createReply();
+
 				if (price != null) {
 					// The requested book is available for sale. Reply with the price
 					reply.setPerformative(ACLMessage.PROPOSE);
@@ -181,7 +206,7 @@ public class PizzaSellerAgent extends Agent {
 
 				if (price != null) {
 					reply.setPerformative(ACLMessage.INFORM);
-					System.out.println(title+" sold to agent "+msg.getSender().getName());
+					System.out.println(title.substring(2)+" sold to agent "+msg.getSender().getName());
 				}
 				else {
 					// The requested book has been sold to another buyer in the meanwhile .

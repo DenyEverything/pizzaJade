@@ -18,7 +18,7 @@ public class PizzaBuyerGui extends JFrame {
         myAgent = a;
         JPanel p = new JPanel();
 
-        p.setLayout(new GridLayout(3, 2));
+        p.setLayout(new GridLayout(4, 2));
         p.add(new JLabel("Search for pizza name:"));
         titleField = new JTextField(15);
         p.add(titleField);
@@ -26,6 +26,18 @@ public class PizzaBuyerGui extends JFrame {
         p.add(new JLabel("OR Ingredients:"));
         ingredientsField = new JTextField(15);
         p.add(ingredientsField);
+
+        p.add(new JLabel("Search by:"));
+        p.add(new JLabel(" "));
+        JRadioButton name,ing;
+        ButtonGroup buttonGroup = new ButtonGroup();
+        name = new JRadioButton("pizza name");
+        ing = new JRadioButton("ingredients");
+        buttonGroup.add(name);
+        buttonGroup.add(ing);
+        p.add(name);
+        p.add(ing);
+        name.setSelected(true);
 
         getContentPane().add(p, BorderLayout.CENTER);
         JButton addButton = new JButton("Search");
@@ -35,7 +47,7 @@ public class PizzaBuyerGui extends JFrame {
                     String title = titleField.getText().trim();
                     String[] ingredientsArray = ingredientsField.getText().split(",");
                     ArrayList<String> ingredientsList = new ArrayList<String>(Arrays.asList(ingredientsArray));
-                    myAgent.updateTarget(title, ingredientsList);
+                    myAgent.updateTarget(title, ingredientsList, name.isSelected());
 
                     titleField.setText("");
                     ingredientsField.setText("");

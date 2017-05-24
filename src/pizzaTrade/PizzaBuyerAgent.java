@@ -40,6 +40,7 @@ public class PizzaBuyerAgent extends Agent {
 	private String targetPizzaName; 				//szukana pizza
 	private ArrayList<String> targetIngredients;	//szukane skladniki
 	private PizzaBuyerGui myGui;
+	private boolean searchByName = true;
 	// The list of known seller agents
 	private AID[] sellerAgents;
 
@@ -56,7 +57,12 @@ public class PizzaBuyerAgent extends Agent {
 		addBehaviour(new TickerBehaviour(this, 15000) {
 			protected void onTick() {
 				//System.out.println("Trying to buy "+targetBookTitle);
-				System.out.println("Trying to buy "+targetPizzaName);
+				if(searchByName) {
+					System.out.println("Trying to buy " + targetPizzaName);
+				} else {
+					System.out.println("Trying to buy pizza with ingredients" + targetIngredients.toString());
+				}
+
 				// Update the list of seller agents
 				DFAgentDescription template = new DFAgentDescription();
 				ServiceDescription sd = new ServiceDescription();
@@ -87,14 +93,16 @@ public class PizzaBuyerAgent extends Agent {
 		System.out.println("Buyer-agent "+getAID().getName()+" terminating.");
 	}
 
-	public void updateTarget(final String title, final ArrayList ingredients) {
+	public void updateTarget(final String title, final ArrayList ingredients, final boolean isSearchByName) {
 		addBehaviour(new OneShotBehaviour() {
 			public void action() {
-				if(title != null) {
+				if(isSearchByName) {
 					targetPizzaName = title;
+					searchByName = true;
 					System.out.println("Looking for pizza " + title);
 				} else {
 					targetIngredients = ingredients;
+					searchByName = false;
 					System.out.println( "Looking for ingredients " + ingredients.toString());
 				}
 			}
@@ -119,8 +127,12 @@ public class PizzaBuyerAgent extends Agent {
 				ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 				for (int i = 0; i < sellerAgents.length; ++i) {
 					cfp.addReceiver(sellerAgents[i]);
-				} 
-				cfp.setContent(targetPizzaName);
+				}
+				if(searchByName){
+					cfp.setContent("0;"+targetPizzaName);
+				} else {
+					cfp.setContent("1;"+targetIngredients.toString());
+				}
 				cfp.setConversationId("pizza-ordering");
 				cfp.setReplyWith("cfp"+System.currentTimeMillis()); // Unique value
 				myAgent.send(cfp);
@@ -157,7 +169,11 @@ public class PizzaBuyerAgent extends Agent {
 				// Send the purchase order to the seller that provided the best offer
 				ACLMessage order = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
 				order.addReceiver(bestSeller);
-				order.setContent(targetPizzaName);
+				if(searchByName){
+					order.setContent("0;"+targetPizzaName);
+				} else {
+					order.setContent("1;"+targetIngredients.toString());
+				}
 				order.setConversationId("pizza-ordering");
 				order.setReplyWith("order"+System.currentTimeMillis());
 				myAgent.send(order);
@@ -173,12 +189,16 @@ public class PizzaBuyerAgent extends Agent {
 					// Purchase order reply received
 					if (reply.getPerformative() == ACLMessage.INFORM) {
 						// Purchase successful. We can terminate
-						System.out.println(targetPizzaName+" successfully purchased from agent "+reply.getSender().getName());
+						if(searchByName){
+							System.out.println(targetPizzaName+" successfully purchased from agent "+reply.getSender().getName());
+						} else {
+							System.out.println("Pizza with ingredients "+targetIngredients.toString()+" successfully purchased from agent "+reply.getSender().getName());
+						}
 						System.out.println("Price = "+bestPrice);
 						myAgent.doDelete();
 					}
 					else {
-						System.out.println("Attempt failed: requested book already sold.");
+						System.out.println("Attempt failed: requested pizza already sold.");
 					}
 
 					step = 4;
@@ -192,7 +212,11 @@ public class PizzaBuyerAgent extends Agent {
 
 		public boolean done() {
 			if (step == 2 && bestSeller == null) {
-				System.out.println("Attempt failed: "+targetPizzaName+" not available for sale");
+				if(searchByName){
+					System.out.println("Attempt failed: "+targetPizzaName+" not available for sale");
+				} else {
+					System.out.println("Attempt failed: pizza with ingredients "+targetIngredients.toString()+" not available for sale");
+				}
 			}
 			return ((step == 2 && bestSeller == null) || step == 4);
 		}
